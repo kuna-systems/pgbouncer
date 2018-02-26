@@ -143,11 +143,20 @@ action :setup do
     action :create
   end
 
-  # build the userlist, pgbouncer.ini and logrotate.d templates
+  # logrotate.d config
+  template "/etc/logrotate.d/pgbouncer-#{new_resource.db_alias}" do
+    cookbook 'pgbouncer'
+    source 'etc/logrotate.d/pgbouncer-logrotate.d.erb'
+    owner 'root'
+    group 'root'
+    mode '0644'
+    variables(template_variables)
+  end
+
+  # build the userlist and pgbouncer.ini templates
   {
     "/etc/pgbouncer/userlist-#{new_resource.db_alias}.txt" => 'etc/pgbouncer/userlist2.txt.erb',
     "/etc/pgbouncer/pgbouncer-#{new_resource.db_alias}.ini" => 'etc/pgbouncer/pgbouncer2.ini.erb', 
-    "/etc/logrotate.d/pgbouncer-#{new_resource.db_alias}" => 'etc/logrotate.d/pgbouncer-logrotate.d.erb', 
   }.each do |key, source_template|
     ## We are setting destination_file to a duplicate of key because the hash
     ## key is frozen and immutable.
@@ -163,9 +172,6 @@ action :setup do
       variables(template_variables)
     end
   end
-
-#      notifies :restart, "service[pgbouncer-#{new_resource.db_alias}]"
-
 
   if init_system == 'upstart'
     data = {

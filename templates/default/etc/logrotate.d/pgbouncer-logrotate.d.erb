@@ -1,6 +1,7 @@
 # Rotate postgresql log files
 
 <%= @log_dir %>/pgbouncer-<%= @db_alias %>.log {
+  su <%= @user %> <%= @group %>
   daily
   copytruncate
   missingok
