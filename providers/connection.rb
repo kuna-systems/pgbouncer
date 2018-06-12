@@ -25,10 +25,13 @@ init_systemd = `bash -c '[[ \`systemctl\` =~ -\.mount ]] && echo 1 || echo 0'`.s
 init_upstart = `bash -c '[[ \`/sbin/init --version\` =~ upstart ]] && echo 1 || echo 0'`.strip
 
 init_system = 'sysv'
+init_system_provider = Chef::Provider::Service::Init
 if init_systemd == '1'
   init_system = 'systemd'
+  init_system_provider = Chef::Provider::Service::Systemd
 elsif init_upstart == '1'
   init_system = 'upstart'
+  init_system_provider = Chef::Provider::Service::Upstart
 end
 
 
@@ -41,7 +44,7 @@ action :start do
   service "pgbouncer-#{new_resource.db_alias}-start" do
     service_name "pgbouncer-#{new_resource.db_alias}" # this is to eliminate warnings around http://tickets.opscode.com/browse/CHEF-3694
     action [:enable, :start]
-    provider Chef::Provider::Service::Upstart
+    provider init_system_provider
   end
 end
 
@@ -49,7 +52,7 @@ action :restart do
   service "pgbouncer-#{new_resource.db_alias}-restart" do
     service_name "pgbouncer-#{new_resource.db_alias}" # this is to eliminate warnings around http://tickets.opscode.com/browse/CHEF-3694
     action [:enable, :restart]
-    provider Chef::Provider::Service::Upstart
+    provider init_system_provider
   end
 end
 
@@ -57,7 +60,7 @@ action :stop do
   service "pgbouncer-#{new_resource.db_alias}-stop" do
     service_name "pgbouncer-#{new_resource.db_alias}" # this is to eliminate warnings around http://tickets.opscode.com/browse/CHEF-3694
     action :stop
-    provider Chef::Provider::Service::Upstart
+    provider init_system_provider
   end
 end
 
